@@ -1,0 +1,19 @@
+{
+    "name": "startingServer",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "bot": "cd bot && nodemon bot.js",
+        "server": "cd server && nodemon server.js",
+        "web": "cd client && npm run start",
+        "startingServer": "concurrently --kill-others \"npm:bot\" \"npm:server\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^0.21.1",
+        "concurrently": "^6.2.0",
+        "discord.js": "^12.5.3"
+    }
+}
