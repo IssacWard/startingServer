@@ -5,6 +5,7 @@ module.exports = {
 	name: 'createmessage',
 	description: 'Bot Message',
 	execute(message) {
+        // CREATE EMBED IN DATABASE //
         function createEmbed(x){
             axios.post('http://localhost:8000/api/commands/new', x)
                 .then(res =>{
@@ -15,10 +16,12 @@ module.exports = {
                 })
         }
         
-        const data = {
-            fields: [{}]
-        }; 
+    // ------------------- Data -------------------//
+        // DATA TO SAVE //
+        const data = {}; 
+        let fieldData = {};
 
+        // BOT QUESTIONS & VALUES //
         let coreQuestions = [{
             question: "Command?",
             value: "command"
@@ -48,36 +51,46 @@ module.exports = {
         let fieldQuestions = [{
             question: "Title of field?",
             value: "name"
-        },{
+        }/*,{
             question: "Description of field?",
             value: "value"
         },{
             question: "Inline? True or false.",
-            value: "inline",
-            final: true
+            value: "inline"
+        }*/];
+
+        let footerQuestions = [{
+            question: "Footer Text?",
+            value: "text"
+        },{
+            question: "Footer Icon_URL?",
+            value: "icon_url"
         }];
 
+        // FIELD ITERATORS //
         let numFields = 0;
         let baseFields = 0;
 
         let field = false;
+        let footer = false;
+    // ------------------- Data -------------------//
+
+    // ------------------- Generators -------------------//
 
         function* questionGenerator(array){
             for (const q of array){
                 yield q;
             }
-        };
-
-        function* numberGenerator(){
-            for (let i = 0 ; i< 2; i++){
-                yield i;
-            }
-        };
+        }
 
         var cGen = questionGenerator(coreQuestions);
         var fGen = questionGenerator(fieldQuestions);
-        var nGen = numberGenerator();
+        var ftGen = questionGenerator(footerQuestions);
+        var fGens = [];
 
+    // ------------------- Generators -------------------//
+
+        // CALLS EACH QUESTION & VALUE //
         function callQuestion(gen, obj){
             if(obj != undefined){
                 message.channel.send(obj.question)
@@ -89,56 +102,87 @@ module.exports = {
                                 const input = messages.first().content;
             
                                 if (input === 'Cancel'){
-                                    message.channel.send('Message canceled.')
+                                    message.channel.send('Creation of embed canceled.')
                                 }
                                 else {
-                                    console.log("Sending to Save")
                                     saveData(gen, obj.value, input);
                                 }
                             })
                             .catch(() => {
-                                message.channel.send('You did not enter any input!');
+                                message.channel.send('You did not enter any input! You will need to start over.');
                             })
                     })
-
             }
             else{
+                console.log(data);
                 console.log(`!!FINISHED!! : ${data.command}`);
+                //createEmbed(data);
             }
         }
 
-      //  function callFields(num){
-//
-       // }
+        // NUMBER OF FIELDS WANTED LOOP //
+        function callFields(){
+            if (baseFields < numFields){
+                baseFields += 1;
 
+                message.channel.send("**Questions for Field "+(baseFields+1)+".**")
+
+                fGens[baseFields] = questionGenerator(fieldQuestions);
+
+                callQuestion(fGens[baseFields], fGens[baseFields].next().value);
+            }
+            else {
+                console.log("No more fields!");
+                console.log(data.fields);
+                console.log(data.fields[0]['name']);
+
+
+                //field = false;
+                //footer = true;
+                //data.footer= {};
+                //callQuestion(ftGen,ftGen.next().value);
+
+            }
+        }
+
+        // SAVES DATA FROM CALLQUESTION //
         function saveData(gen, dataValue, input){
             if (dataValue === 'field'){
                 field = true;
+                data.fields = [];
+                numFields = Number(input)-1;
 
-                console.log("Has Fields");
-                numFields = Number(input);
+                message.channel.send("**Questions for Field "+(baseFields+1)+".**")
 
                 callQuestion(fGen,fGen.next().value);
-
             }
-            else if(field == true)
-            {
-                console.log("Field = True");
-                //data.fields[baseFields][dataValue] = input.toLowerCase();
-                //console.log(data[fields][baseFields][dataValue]);
-                baseFields += 1;
+            else if(field == true){
+                fieldData[dataValue] = input;
+
+                let next = gen.next().value;
+
+                if (next != undefined){
+                    callQuestion(gen, next);
+                }
+                else {
+                    callFields();
+                }
+                
+            }
+            else if (footer == true){
+                data.footer[dataValue] = input;
                 callQuestion(gen, gen.next().value);
             }
             else {
-                data[dataValue] = input.toLowerCase();
+                data[dataValue] = input;
                 callQuestion(gen, gen.next().value);
             }
         }
 
-        // ---------------------------------------------------- //
+    // ------------------- Starts Bot Question Loop -------------------//
 
         callQuestion(cGen, cGen.next().value);
 
-        // ---------------------------------------------------- //
+     // ------------------- Starts Bot Question Loop -------------------//
     },
 };

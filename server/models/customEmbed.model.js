@@ -26,6 +26,36 @@ const CustomEmbedSchema = new mongoose.Schema({
     },
     url: {
         type: String
+    },
+    author: {
+        name:{
+            type: String
+        },
+        icon_url:{
+            type: String
+        },
+        url:{
+            type: String
+        }
+    },
+    fields: [{
+        name:{
+            type: String
+        },
+        value:{
+            type: String
+        },
+        inline:{
+            type: Boolean
+        }
+    }],
+    footer: {
+        text:{
+            type: String
+        },
+        icon_url:{
+            type: String
+        }
     }
 }, {timestamps:true})
 
